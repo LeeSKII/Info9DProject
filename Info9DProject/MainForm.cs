@@ -66,7 +66,7 @@ namespace Info9DProject
                     if (DGVTotal.Rows[i].Cells[0].Value.ToString() == strId)
                     {
                         DGVTotal.Rows[i].Selected = true;//设置改行选中
-                        DGVTotal.CurrentCell = DGVTotal.Rows[i].Cells[0];//焦点到该行
+                        DGVTotal.CurrentCell = DGVTotal.Rows[i].Cells[0];//焦点到该行                       
                     }
                 }
             }                             
@@ -140,9 +140,22 @@ namespace Info9DProject
             }
         }
 
-        private void DGVTotal_CellClick(object sender, DataGridViewCellEventArgs e)//刷新tabControl的表
+        private void RefreshTabControl()//刷新tabControl的内容
         {
-            DataGridViewRow selectedRow = DGVTotal.SelectedRows[0];
+            try
+            {
+                if (DGVTotal.SelectedRows.Count <= 0)
+                {
+                    MessageBox.Show("请确认是否选中行记录!");
+                    return;
+                }
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("请确认是否选中行记录!");
+                return;
+            }
+            DataGridViewRow selectedRow = DGVTotal.SelectedRows[0];         
             string sId = selectedRow.Cells[0].Value.ToString();
             SqlConnection con = new SqlConnection(sqlConnectInfo);
             con.Open();
@@ -171,10 +184,15 @@ namespace Info9DProject
                 MessageBox.Show("数据库数据加载错误信息:\n" + ex.Message);
                 return;
             }
-                       
-            TBDescribeQuality.Text = strDescribeQuality;                      
+
+            TBDescribeQuality.Text = strDescribeQuality;
             TBDescribeSafety.Text = strDescribeSafety;
             con.Close();
+        }
+
+        private void DGVTotal_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            RefreshTabControl();//刷新tabControl的内容
         }
 
         private void BUTFocus_Click(object sender, EventArgs e)
@@ -235,11 +253,40 @@ namespace Info9DProject
             string strId = nId.ToString();
             if (!HasRecordInSqlTable(strId))//查询并聚焦
                 MessageBox.Show("该构件未查询到信息!", "信息");
+            else
+                RefreshTabControl();
         }
 
         private void BUTChange_Click(object sender, EventArgs e)
         {
-
+            int nSelectedRowsCount = -1;
+            nSelectedRowsCount = DGVTotal.SelectedRows.Count;
+            if (nSelectedRowsCount != 1)
+            {
+                MessageBox.Show("只允许单行修改信息！","提示");
+                return;
+            }
+            string sId = DGVTotal.SelectedRows[0].Cells[0].Value.ToString();//取到ID
+            string sQualityDescribeText = TBDescribeQuality.Text.Trim();
+            string sSafetyDescribeText = TBDescribeSafety.Text.Trim();
+            SqlConnection con = new SqlConnection(sqlConnectInfo);
+            con.Open();
+            string strSqlTextQ = string.Format("UPDATE {0} SET Describe='{1}' WHERE ID='{2}'",qualityTableName, sQualityDescribeText,sId);
+            string strSqlTextS = string.Format("UPDATE {0} SET Describe='{1}' WHERE ID='{2}'", safetyTableName, sSafetyDescribeText, sId);
+            SqlCommand sqlCommandQ = new SqlCommand(strSqlTextQ, con);
+            SqlCommand sqlCommandS = new SqlCommand(strSqlTextS, con);
+            try
+            {
+                sqlCommandQ.ExecuteNonQuery();
+                sqlCommandS.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("修改发生错误：\n" + ex.Message);
+                con.Close();
+            }
+            MessageBox.Show("修改成功！", "提示");
+            con.Close();
         }
     }
 }
