@@ -45,6 +45,7 @@
             this.BUTFocus = new System.Windows.Forms.Button();
             this.BUTQuery = new System.Windows.Forms.Button();
             this.BUTChange = new System.Windows.Forms.Button();
+            this.BUTDelete = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -163,6 +164,7 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.BUTDelete);
             this.groupBox1.Controls.Add(this.BUTChange);
             this.groupBox1.Controls.Add(this.BUTQuery);
             this.groupBox1.Controls.Add(this.BUTFocus);
@@ -237,6 +239,16 @@
             this.BUTChange.UseVisualStyleBackColor = true;
             this.BUTChange.Click += new System.EventHandler(this.BUTChange_Click);
             // 
+            // BUTDelete
+            // 
+            this.BUTDelete.Location = new System.Drawing.Point(496, 17);
+            this.BUTDelete.Name = "BUTDelete";
+            this.BUTDelete.Size = new System.Drawing.Size(75, 23);
+            this.BUTDelete.TabIndex = 6;
+            this.BUTDelete.Text = "删除";
+            this.BUTDelete.UseVisualStyleBackColor = true;
+            this.BUTDelete.Click += new System.EventHandler(this.BUTDelete_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -280,5 +292,6 @@
         private System.Windows.Forms.Button BUTFocus;
         private System.Windows.Forms.Button BUTQuery;
         private System.Windows.Forms.Button BUTChange;
+        private System.Windows.Forms.Button BUTDelete;
     }
 }

@@ -288,5 +288,44 @@ namespace Info9DProject
             MessageBox.Show("修改成功！", "提示");
             con.Close();
         }
+
+        private void BUTDelete_Click(object sender, EventArgs e)
+        {
+            DataGridViewSelectedRowCollection selectedRows = DGVTotal.SelectedRows;
+            if (selectedRows.Count <= 0)
+            {
+                MessageBox.Show("未选中任何行数据删除", "提示");
+                return;
+            }
+            DialogResult result = MessageBox.Show("该删除操作会删除该构件下所有的记录信息且不可恢复，确认执行？", "删除",
+                            MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (result == DialogResult.Yes)
+            {
+                SqlConnection con = new SqlConnection(sqlConnectInfo);
+                con.Open();
+                for (int i = 0; i < selectedRows.Count; i++)
+                {
+                    try
+                    {
+                        string id = selectedRows[i].Cells[0].Value.ToString();
+                        string cmdTextM = string.Format("DELETE FROM {0} WHERE ID='{1}'", mainTableName,id);
+                        string cmdTextQ = string.Format("DELETE FROM {0} WHERE ID='{1}'", qualityTableName, id);
+                        string cmdTextS = string.Format("DELETE FROM {0} WHERE ID='{1}'", safetyTableName, id);
+                        SqlCommand cmdM = new SqlCommand(cmdTextM, con);
+                        SqlCommand cmdQ = new SqlCommand(cmdTextQ, con);
+                        SqlCommand cmdS = new SqlCommand(cmdTextS, con);
+                        cmdM.ExecuteNonQuery();
+                        cmdQ.ExecuteNonQuery();
+                        cmdS.ExecuteNonQuery();
+                        DGVTotal.Rows.Remove(selectedRows[i]);//在grid中删除
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("删除发生错误" + ex.Message, "提示");
+                    }
+                }
+                con.Close();
+            }
+        }
     }
 }
