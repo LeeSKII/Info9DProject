@@ -19,6 +19,10 @@ namespace Info9DProject
         private const string mainTableName = "BIM_9DMain";
         private const string qualityTableName = "BIM_9DQualityInfo";
         private const string safetyTableName = "BIM_9DSafetyInfo";
+        private const string costTableName = "BIM_9DCostInfo";
+        private const string energyTableName = "BIM_9DEnergyInfo";
+        private const string facilitiesTableName = "BIM_9DFacilitiesInfo";
+
         public MainForm()
         {
             InitializeComponent();
@@ -120,14 +124,32 @@ namespace Info9DProject
                 if (TBDescribeSafety.Text.Trim() != string.Empty)
                     safetyDescribeText = TBDescribeSafety.Text;
                 string strSafetySqlText = string.Format("INSERT INTO {0} VALUES ('{1}','{2}','{3}')", safetyTableName, strId, strName, safetyDescribeText);
+                string costDescribeText = "";
+                if (TBDescribeCost.Text.Trim() != string.Empty)
+                    costDescribeText = TBDescribeCost.Text;
+                string strCostSqlText = string.Format("INSERT INTO {0} VALUES ('{1}','{2}','{3}')", costTableName, strId, strName, costDescribeText);
+                string energyDescribeText = "";
+                if (TBDescribeEnergy.Text.Trim() != string.Empty)
+                    energyDescribeText = TBDescribeEnergy.Text;
+                string strEnergySqlText = string.Format("INSERT INTO {0} VALUES ('{1}','{2}','{3}')", energyTableName, strId, strName, energyDescribeText);
+                string facilitiesDescribeText = "";
+                if (TBDescribeFacilities.Text.Trim() != string.Empty)
+                    facilitiesDescribeText = TBDescribeFacilities.Text;
+                string strFacilitiesSqlText = string.Format("INSERT INTO {0} VALUES ('{1}','{2}','{3}')", facilitiesTableName, strId, strName, facilitiesDescribeText);
                 SqlCommand cmdTotalSqlText = new SqlCommand(strTotalSqlText, con);
                 SqlCommand cmdQuality = new SqlCommand(strQualitySqlText, con);
                 SqlCommand cmdSafety = new SqlCommand(strSafetySqlText, con);
+                SqlCommand cmdCost = new SqlCommand(strCostSqlText, con);
+                SqlCommand cmdEnergy = new SqlCommand(strEnergySqlText, con);
+                SqlCommand cmdFacilities = new SqlCommand(strFacilitiesSqlText, con);
                 try
                 {
                     cmdTotalSqlText.ExecuteNonQuery();
                     cmdQuality.ExecuteNonQuery();
                     cmdSafety.ExecuteNonQuery();
+                    cmdCost.ExecuteNonQuery();
+                    cmdEnergy.ExecuteNonQuery();
+                    cmdFacilities.ExecuteNonQuery();
                 }
                 catch (Exception ex)
                 {
@@ -161,11 +183,20 @@ namespace Info9DProject
             con.Open();
             string strQualitySqlText = string.Format("SELECT Describe FROM {0} WHERE ID = {1}", qualityTableName, sId);
             string strSafetySqlText = string.Format("SELECT Describe FROM {0} WHERE ID={1}", safetyTableName, sId);
+            string strCostSqlText = string.Format("SELECT Describe FROM {0} WHERE ID={1}", costTableName, sId);
+            string strEnergySqlText = string.Format("SELECT Describe FROM {0} WHERE ID={1}", energyTableName, sId);
+            string strFcilitiesSqlText = string.Format("SELECT Describe FROM {0} WHERE ID={1}", facilitiesTableName, sId);
             SqlCommand cmdQuality = new SqlCommand(strQualitySqlText, con);
             SqlCommand cmdSafety = new SqlCommand(strSafetySqlText, con);
+            SqlCommand cmdCost = new SqlCommand(strCostSqlText, con);
+            SqlCommand cmdEnergy = new SqlCommand(strEnergySqlText, con);
+            SqlCommand cmdFacilities = new SqlCommand(strFcilitiesSqlText, con);
             SqlDataReader reader;
             string strDescribeQuality = "";
             string strDescribeSafety = "";
+            string strDescribeCost = "";
+            string strDescribeEnergy = "";
+            string strDescribeFacilities = "";
             try
             {
                 reader = cmdQuality.ExecuteReader();
@@ -178,6 +209,24 @@ namespace Info9DProject
                 if (!reader.IsDBNull(reader.GetOrdinal("Describe")))//db中有数据
                     strDescribeSafety = reader.GetString(reader.GetOrdinal("Describe"));
                 reader.Close();
+
+                reader = cmdCost.ExecuteReader();
+                reader.Read();
+                if (!reader.IsDBNull(reader.GetOrdinal("Describe")))//db中有数据
+                    strDescribeCost = reader.GetString(reader.GetOrdinal("Describe"));
+                reader.Close();
+
+                reader = cmdEnergy.ExecuteReader();
+                reader.Read();
+                if (!reader.IsDBNull(reader.GetOrdinal("Describe")))//db中有数据
+                    strDescribeEnergy = reader.GetString(reader.GetOrdinal("Describe"));
+                reader.Close();
+
+                reader = cmdFacilities.ExecuteReader();
+                reader.Read();
+                if (!reader.IsDBNull(reader.GetOrdinal("Describe")))//db中有数据
+                    strDescribeFacilities = reader.GetString(reader.GetOrdinal("Describe"));
+                reader.Close();
             }
             catch (Exception ex)
             {
@@ -187,6 +236,9 @@ namespace Info9DProject
 
             TBDescribeQuality.Text = strDescribeQuality;
             TBDescribeSafety.Text = strDescribeSafety;
+            TBDescribeCost.Text = strDescribeCost;
+            TBDescribeEnergy.Text = strDescribeEnergy;
+            TBDescribeFacilities.Text = strDescribeFacilities;
             con.Close();
         }
 
@@ -197,7 +249,8 @@ namespace Info9DProject
 
         private void BUTFocus_Click(object sender, EventArgs e)
         {
-            Document Doc = Autodesk.Navisworks.Api.Application.ActiveDocument;                        
+            Document Doc = Autodesk.Navisworks.Api.Application.ActiveDocument;         
+            
             List<string> listId = new List<string>();
             if (DGVTotal.SelectedRows.Count == 0)
             {
@@ -217,7 +270,8 @@ namespace Info9DProject
                 search.Selection.SelectAll();
                 search.SearchConditions.Add(SearchCondition.HasPropertyByDisplayName("元素", "Id").EqualValue(VariantData.FromInt32(Int32.Parse(listId[i]))));
                 ModelItemCollection items = search.FindAll(Doc, true);
-                itemsCol.Add(items.First);
+                if(items.First!=null)//不为空才添加
+                    itemsCol.Add(items.First);
             }
             
                      
@@ -252,7 +306,12 @@ namespace Info9DProject
             }
             string strId = nId.ToString();
             if (!HasRecordInSqlTable(strId))//查询并聚焦
+            {
                 MessageBox.Show("该构件未查询到信息!", "信息");
+                //清空TabControl面板信息
+                TBDescribeQuality.Text = "";
+                TBDescribeSafety.Text = "";
+            }
             else
                 RefreshTabControl();
         }
@@ -267,18 +326,30 @@ namespace Info9DProject
                 return;
             }
             string sId = DGVTotal.SelectedRows[0].Cells[0].Value.ToString();//取到ID
-            string sQualityDescribeText = TBDescribeQuality.Text.Trim();
-            string sSafetyDescribeText = TBDescribeSafety.Text.Trim();
+            string sQualityDescribeText = TBDescribeQuality.Text.Trim();//质量
+            string sSafetyDescribeText = TBDescribeSafety.Text.Trim();//安全
+            string sCostDescribeText = TBDescribeCost.Text.Trim();
+            string sEnergyDescribeText = TBDescribeEnergy.Text.Trim();//能耗
+            string sFacilitiesDescribeText = TBDescribeFacilities.Text.Trim();
             SqlConnection con = new SqlConnection(sqlConnectInfo);
             con.Open();
             string strSqlTextQ = string.Format("UPDATE {0} SET Describe='{1}' WHERE ID='{2}'",qualityTableName, sQualityDescribeText,sId);
             string strSqlTextS = string.Format("UPDATE {0} SET Describe='{1}' WHERE ID='{2}'", safetyTableName, sSafetyDescribeText, sId);
+            string strSqlTextC = string.Format("UPDATE {0} SET Describe='{1}' WHERE ID='{2}'", costTableName, sCostDescribeText, sId);
+            string strSqlTextE = string.Format("UPDATE {0} SET Describe='{1}' WHERE ID='{2}'", energyTableName, sEnergyDescribeText, sId);
+            string strSqlTextF = string.Format("UPDATE {0} SET Describe='{1}' WHERE ID='{2}'", facilitiesTableName, sFacilitiesDescribeText, sId);
             SqlCommand sqlCommandQ = new SqlCommand(strSqlTextQ, con);
             SqlCommand sqlCommandS = new SqlCommand(strSqlTextS, con);
+            SqlCommand sqlCommandC = new SqlCommand(strSqlTextC, con);
+            SqlCommand sqlCommandE = new SqlCommand(strSqlTextE, con);
+            SqlCommand sqlCommandF = new SqlCommand(strSqlTextF, con);
             try
             {
                 sqlCommandQ.ExecuteNonQuery();
                 sqlCommandS.ExecuteNonQuery();
+                sqlCommandC.ExecuteNonQuery();
+                sqlCommandE.ExecuteNonQuery();
+                sqlCommandF.ExecuteNonQuery();
             }
             catch (Exception ex)
             {
@@ -311,12 +382,21 @@ namespace Info9DProject
                         string cmdTextM = string.Format("DELETE FROM {0} WHERE ID='{1}'", mainTableName,id);
                         string cmdTextQ = string.Format("DELETE FROM {0} WHERE ID='{1}'", qualityTableName, id);
                         string cmdTextS = string.Format("DELETE FROM {0} WHERE ID='{1}'", safetyTableName, id);
+                        string cmdTextC = string.Format("DELETE FROM {0} WHERE ID='{1}'", costTableName, id);
+                        string cmdTextE = string.Format("DELETE FROM {0} WHERE ID='{1}'", energyTableName, id);
+                        string cmdTextF = string.Format("DELETE FROM {0} WHERE ID='{1}'", facilitiesTableName, id);
                         SqlCommand cmdM = new SqlCommand(cmdTextM, con);
                         SqlCommand cmdQ = new SqlCommand(cmdTextQ, con);
                         SqlCommand cmdS = new SqlCommand(cmdTextS, con);
+                        SqlCommand cmdC = new SqlCommand(cmdTextC, con);
+                        SqlCommand cmdE = new SqlCommand(cmdTextE, con);
+                        SqlCommand cmdF = new SqlCommand(cmdTextF, con);
                         cmdM.ExecuteNonQuery();
                         cmdQ.ExecuteNonQuery();
                         cmdS.ExecuteNonQuery();
+                        cmdC.ExecuteNonQuery();
+                        cmdE.ExecuteNonQuery();
+                        cmdF.ExecuteNonQuery();
                         DGVTotal.Rows.Remove(selectedRows[i]);//在grid中删除
                     }
                     catch (Exception ex)
