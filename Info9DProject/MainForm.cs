@@ -15,7 +15,7 @@ namespace Info9DProject
 {
     public partial class MainForm : Form
     {
-        private const string sqlConnectInfo = "data source=192.168.0.69;Initial Catalog=ZYCT_Project;User ID=sa;PWD=sasa;";
+        private const string sqlConnectInfo = "data source=192.168.*.*;Initial Catalog=********;User ID=sa;PWD=sasa;";
         private const string mainTableName = "BIM_9DMain";
         private const string qualityTableName = "BIM_9DQualityInfo";
         private const string safetyTableName = "BIM_9DSafetyInfo";
